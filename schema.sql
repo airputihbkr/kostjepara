@@ -35,4 +35,4 @@ CREATE POLICY "Public Read Articles" ON articles
     FOR SELECT USING (true);
 
 CREATE POLICY "Admin All Articles" ON articles
-    FOR ALL USING (true); -- Simplification for this demo, usually would check auth.uid()
+    FOR ALL USING (auth.role() = 'authenticated'); -- Checks if user is logged in

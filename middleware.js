@@ -41,6 +41,19 @@ export async function middleware(request) {
         return NextResponse.redirect(new URL('/admin', request.url))
     }
 
+    // Add Security Headers
+    const securityHeaders = {
+        'X-DNS-Prefetch-Control': 'on',
+        'Strict-Transport-Security': 'max-age=63072000; includeSubDomains; preload',
+        'X-Frame-Options': 'SAMEORIGIN',
+        'X-Content-Type-Options': 'nosniff',
+        'Referrer-Policy': 'origin-when-cross-origin',
+    }
+
+    Object.entries(securityHeaders).forEach(([key, value]) => {
+        response.headers.set(key, value)
+    })
+
     return response
 }
 
