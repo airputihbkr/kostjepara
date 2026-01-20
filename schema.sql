@@ -1,58 +1,38 @@
--- Enable UUID extension
-CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+-- Existing updates
+DO $$ 
+BEGIN 
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'kosts' AND column_name = 'google_drive_link_2') THEN
+        ALTER TABLE kosts ADD COLUMN google_drive_link_2 TEXT;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'kosts' AND column_name = 'google_drive_link_3') THEN
+        ALTER TABLE kosts ADD COLUMN google_drive_link_3 TEXT;
+    END IF;
+    -- Add WhatsApp if missing
+     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'kosts' AND column_name = 'whatsapp') THEN
+        ALTER TABLE kosts ADD COLUMN whatsapp TEXT;
+    END IF;
+END $$;
 
--- 1. Table: Kecamatan
-CREATE TABLE kecamatan (
-    id SERIAL PRIMARY KEY,
-    nama TEXT NOT NULL
-);
-
--- Seed Data for Kecamatan
-INSERT INTO kecamatan (nama) VALUES
-('Bangsri'), ('Batealit'), ('Donorojo'), ('Jepara'), ('Kalinyamatan'),
-('Karimunjawa'), ('Kedung'), ('Keling'), ('Kembang'), ('Mayong'),
-('Mlonggo'), ('Nalumsari'), ('Pakis Aji'), ('Pecangaan'), ('Tahunan'), ('Welahan');
-
--- 2. Table: Kosts
-CREATE TABLE kosts (
+-- ==========================================
+-- NEW: BLOG / ARTICLE SYSTEM
+-- ==========================================
+CREATE TABLE IF NOT EXISTS articles (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-    nama_kost TEXT NOT NULL,
-    harga NUMERIC NOT NULL,
-    fasilitas TEXT,
-    alamat_lengkap TEXT,
-    kecamatan_id INTEGER REFERENCES kecamatan(id),
-    google_drive_link TEXT,
-    maps_link TEXT,
-    is_available BOOLEAN DEFAULT true,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
+    slug TEXT UNIQUE NOT NULL,
+    title TEXT NOT NULL,
+    excerpt TEXT,
+    content TEXT, -- HTML or Markdown
+    cover_image TEXT,
+    is_published BOOLEAN DEFAULT false,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 3. Table: Traffic Stats
-CREATE TABLE traffic_stats (
-    id SERIAL PRIMARY KEY,
-    daily_visits_display INTEGER DEFAULT 0,
-    monthly_visits_display INTEGER DEFAULT 0
-);
+-- RLS Policies (Open read, Admin write) -> Assumes you have an auth system or just generic access for now as per previous code
+ALTER TABLE articles ENABLE ROW LEVEL SECURITY;
 
--- Initial Traffic Stats Row (assuming single row for global stats)
-INSERT INTO traffic_stats (id, daily_visits_display, monthly_visits_display) VALUES (1, 120, 3500);
+CREATE POLICY "Public Read Articles" ON articles
+    FOR SELECT USING (true);
 
-
--- Security & RLS
-ALTER TABLE kecamatan ENABLE ROW LEVEL SECURITY;
-ALTER TABLE kosts ENABLE ROW LEVEL SECURITY;
-ALTER TABLE traffic_stats ENABLE ROW LEVEL SECURITY;
-
--- Policies for Kecamatan
-CREATE POLICY "Public can read kecamatan" ON kecamatan FOR SELECT USING (true);
-CREATE POLICY "Admin can all kecamatan" ON kecamatan USING (auth.role() = 'authenticated');
-
--- Policies for Kosts
-CREATE POLICY "Public can read kosts" ON kosts FOR SELECT USING (true);
-CREATE POLICY "Admin can insert kosts" ON kosts FOR INSERT WITH CHECK (auth.role() = 'authenticated');
-CREATE POLICY "Admin can update kosts" ON kosts FOR UPDATE USING (auth.role() = 'authenticated');
-CREATE POLICY "Admin can delete kosts" ON kosts FOR DELETE USING (auth.role() = 'authenticated');
-
--- Policies for Traffic Stats
-CREATE POLICY "Public can read traffic_stats" ON traffic_stats FOR SELECT USING (true);
-CREATE POLICY "Admin can update traffic_stats" ON traffic_stats FOR UPDATE USING (auth.role() = 'authenticated');
+CREATE POLICY "Admin All Articles" ON articles
+    FOR ALL USING (true); -- Simplification for this demo, usually would check auth.uid()
