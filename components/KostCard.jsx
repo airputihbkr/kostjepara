@@ -33,17 +33,22 @@ export default function KostCard({ kost }) {
                             </Badge>
                         </div>
                         <CardHeader>
-                            <div className="flex justify-between items-start gap-4">
-                                <div>
-                                    <CardTitle className="text-xl font-bold truncate">{kost.nama_kost}</CardTitle>
-                                    <CardDescription className="flex items-center mt-2 text-gray-500">
-                                        <MapPin className="w-4 h-4 mr-1 text-primary shrink-0" />
-                                        <span className="line-clamp-1">{kost.alamat_lengkap}</span>
-                                    </CardDescription>
+                            <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
+                                <div className="space-y-1 w-full sm:w-auto">
+                                    <CardTitle className="text-xl font-bold leading-tight text-gray-900 group-hover:text-primary transition-colors line-clamp-2">
+                                        {kost.nama_kost}
+                                    </CardTitle>
+                                    <div className="flex items-start text-muted-foreground">
+                                        <MapPin className="w-4 h-4 mr-1 mt-0.5 shrink-0 text-primary" />
+                                        <span className="text-sm line-clamp-1">{kost.alamat_lengkap}</span>
+                                    </div>
                                 </div>
-                                <div className="text-right shrink-0">
-                                    <p className="text-lg font-bold text-primary">{formatCurrency(kost.harga)}</p>
-                                    <p className="text-xs text-muted-foreground">/ bulan</p>
+                                <div className="flex flex-row sm:flex-col items-center sm:items-end justify-between w-full sm:w-auto mt-2 sm:mt-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-gray-100 sm:shrink-0">
+                                    <div className="text-left sm:text-right">
+                                        <p className="text-lg font-bold text-primary whitespace-nowrap">{formatCurrency(kost.harga)}</p>
+                                        <p className="text-xs text-muted-foreground hidden sm:block">/ bulan</p>
+                                    </div>
+                                    <span className="text-xs text-muted-foreground sm:hidden">/ bulan</span>
                                 </div>
                             </div>
                         </CardHeader>
